@@ -1,99 +1,200 @@
-# 🚀 Portfolio — Personal Developer Site
+# dotfiles
 
-A modern, self-hostable developer portfolio powered by a **Go backend** and **React frontend (via Bun & Vite)**.
-
-This project is optimized for performance, portability, and developer experience, using a clean architecture with declarative metadata and zero server-side JavaScript dependencies.
+This document include:
+* How my repo is structured
+* How branches work in my dotfiles layout
+* How the zinit + plugins submodules work
+* How to clone, update, bootstrap a new machine
+* How to manage updates in the future
+* Clear diagrams and commands
 
 ---
 
-## 📁 Project Structure
+# 📘 **Dotfiles Repository Guide**
+
+*A complete guide for future-me so I don’t have to remember any paths.*
+
+---
+
+# 🗂 **Repository Structure**
+
+My GitHub repo contains **multiple branches**, each representing a section of my system config:
+
+| Branch     | Purpose                                       |
+| ---------- | --------------------------------------------- |
+| `nvim`     | Neovim configuration                          |
+| `zsh`      | Zsh configuration                             |
+| `tmux`     | Tmux configuration                            |
+| `anifetch` | Anifetch config                               |
+| `neofetch` | Neofetch config                               |
+| `zinit`    | Zinit + plugin manager & plugins              |
+| `main`     | Might be empty / not used yet                 |
+
+This layout lets me clone only the config I care about on any system.
+
+---
+
+# 📍 **Zinit Directory Layout**
+
+Inside the `zinit` branch, my actual runtime directory looks like:
 
 ```
-.
-├── api             # Backend API handlers
-├── assets          # Static assets (images, icons)
-├── bin             # Final built Go binary
-├── client          # Frontend React project (Bun + TypeScript)
-├── cmd             # Go server entry point
-├── config          # JSON-based configuration (server, client, metadata)
-├── logger          # Logging utility
-├── middleware      # Custom middleware (logger, crash recovery, etc.)
-├── parser          # HTML head metadata parser
-├── types           # Shared Go types
-├── util            # Utility helpers
+~/.local/share/zinit/
+│
+├── zinit.git/                                  <-- submodule
+│
+└── plugins/
+     ├── Aloxaf---fzf-tab/                      <-- submodule
+     ├── romkatv---powerlevel10k/               <-- submodule
+     ├── tolkonepiu---catppuccin-powerlevel10k-themes/  <-- submodule
+     ├── zsh-users---zsh-autosuggestions/       <-- submodule
+     ├── zsh-users---zsh-completions/           <-- submodule
+     └── zsh-users---zsh-syntax-highlighting/   <-- submodule
+```
+
+All plugins are **proper Git submodules**, not copied folders.
+
+---
+
+# 🧩 **Submodules Overview**
+
+Each plugin is stored as:
+
+```
+plugins/<github-user>---<repo-name>/
+```
+
+They are always added like:
+
+```
+git submodule add <url> plugins/<folder-name>
+```
+
+This keeps my dotfiles repo small, fast, and easy to update.
+
+---
+
+# 🌱 **Cloning the zinit branch on a new machine**
+
+This is how to bootstrap a fresh install:
+
+```sh
+git clone --branch zinit --recursive https://github.com/jelius-sama/dotfiles.git ~/.local/share/zinit
+```
+
+The `--recursive` is essential — it pulls all plugin submodules.
+
+If I ever forget:
+
+```sh
+git submodule update --init --recursive
 ```
 
 ---
 
-## 🧠 Features
+# 🔄 **Updating plugins later**
 
-- ✅ **Pure Go HTTP server** (no Node.js backend)
-- ⚡ **React + Bun frontend** (blazing fast DX)
-- 📦 **Portable binary** deployment (`bin/Portfolio-1.x.x`)
-- 🔧 **Configurable via JSON**
-- 🌍 **Cloudflare Tunnel | AWS EC2 | Any VPS With Linux** / Let’s Encrypt TLS-ready
+To update **all plugins**:
 
----
+```sh
+git submodule update --remote --merge
+```
 
-## 🛠 Development Setup
+To update only one plugin:
 
-### Backend (Go)
-```bash
-make dev
+```sh
+git submodule update --remote plugins/zsh-users---zsh-autosuggestions
+```
+
+Then commit the update:
+
+```sh
+git add .
+git commit -m "Update zinit plugins"
+git push
 ```
 
 ---
 
-## 🧩 Metadata System (Dynamic page metadata not implemented)
+# 🛠 **Adding a new plugin in the future**
 
-Head `<title>`, `<meta>`, and `<link>` tags are defined per route using a single config file:
+1. Clone it manually into the correct folder:
 
-> `config/static.route.json`
+   ```sh
+   cd ~/.local/share/zinit/plugins
+   git -C SOMEplugin remote get-url origin  # get URL
+   ```
 
-- Global tags (wildcard path `"*"`).
-- Merged with per-route overrides at runtime and build.
+2. Remove the embedded repo:
+
+   ```sh
+   git rm --cached -r plugins/SOMEplugin
+   ```
+
+3. Add it as a submodule from the correct location:
+
+   ```sh
+   cd ~/.local/share/zinit
+   git submodule add <url> plugins/SOMEplugin
+   ```
+
+4. Commit:
+
+   ```sh
+   git add .
+   git commit -m "Add new zinit plugin"
+   git push
+   ```
 
 ---
 
-## 📦 Production Build
+# 🔥 **Resetting / Fixing Broken Submodules**
 
-To generate a `.tar.gz` archive containing everything needed to deploy:
+If a plugin gets messed up:
 
-```bash
-make archive_prod
+```sh
+git submodule deinit -f plugins/SOMEplugin
+rm -rf .git/modules/plugins/SOMEplugin
+rm -rf plugins/SOMEplugin
+git submodule add <url> plugins/SOMEplugin
 ```
 
-This includes:
-- `bin/`
-- `config/`
-- `LICENSE`
-- `README.md`
-
 ---
 
-## 🚀 Deploying
+# 🌎 **Branch Workflow on GitHub**
 
-Extract the archive and run the binary:
+My branches represent *different components of my system*:
 
-```bash
-tar -xzf archive_prod.tar.gz
-./bin/Portfolio-1.x.x
+* `zinit` branch → only zsh plugin manager & plugins
+* `zsh` branch → zshrc, env vars, prompt
+* `nvim`, `tmux`, etc → each component isolated
+* Makes merging unnecessary and avoids huge conflicts
+
+When working on e.g. tmux:
+
+```sh
+git switch tmux
 ```
 
-Optional:
-- Add a `systemd` service
-- Use `certbot` for TLS
-- Serve via Cloudflare Tunnel
+When working on zsh:
+
+```sh
+git switch zsh
+```
+
+When working on zinit:
+
+```sh
+git switch zinit
+```
 
 ---
 
-## 📜 License
+# 📦 **Best Practices Summary**
 
-MIT — See [LICENSE](./LICENSE)
+✔ Keep each config type in its own branch
+✔ Always commit after submodule updates
+✔ Use `--recursive` when cloning
+✔ Avoid mixing branches
 
 ---
-
-## ✨ Author
-
-[Jelius Basumatary](https://jelius.dev) — Fullstack Web & App Developer
-
