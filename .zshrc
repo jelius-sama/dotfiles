@@ -76,6 +76,8 @@ zinit cdreplay -q
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# zinit light tolkonepiu/catppuccin-powerlevel10k-themes
+# apply_catppuccin pure mocha
 
 bindkey -e
 bindkey '^p' history-search-backward
