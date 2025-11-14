@@ -1,0 +1,21 @@
+[submodule "plugins/Aloxaf---fzf-tab"]
+	path = plugins/Aloxaf---fzf-tab
+	url = https://github.com/Aloxaf/fzf-tab.git
+[submodule "plugins/romkatv---powerlevel10k"]
+	path = plugins/romkatv---powerlevel10k
+	url = https://github.com/romkatv/powerlevel10k.git
+[submodule "plugins/tolkonepiu---catppuccin-powerlevel10k-themes"]
+	path = plugins/tolkonepiu---catppuccin-powerlevel10k-themes
+	url = https://github.com/tolkonepiu/catppuccin-powerlevel10k-themes.git
+[submodule "plugins/zsh-users---zsh-autosuggestions"]
+	path = plugins/zsh-users---zsh-autosuggestions
+	url = https://github.com/zsh-users/zsh-autosuggestions.git
+[submodule "plugins/zsh-users---zsh-completions"]
+	path = plugins/zsh-users---zsh-completions
+	url = https://github.com/zsh-users/zsh-completions.git
+[submodule "plugins/zsh-users---zsh-syntax-highlighting"]
+	path = plugins/zsh-users---zsh-syntax-highlighting
+	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
+[submodule "zinit.git"]
+	path = zinit.git
+	url = https://github.com/zdharma-continuum/zinit.git
