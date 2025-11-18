@@ -903,15 +903,17 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
           end
           return 'make install_jsregexp'
         end)(),
-        dependencies = {
-          -- Keep friendly-snippets commented out as in your config
-        },
+        dependencies = {},
         config = function()
           local ls = require 'luasnip'
           local s = ls.snippet
           local t = ls.text_node
+          local i = ls.insert_node
+          local f = ls.function_node
 
-          -- Define custom snippets for C
+          -- ========================================
+          -- C SNIPPETS
+          -- ========================================
           ls.add_snippets('c', {
             s('blp', {
               t {
@@ -923,9 +925,269 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
                 '}',
               },
             }),
+            s('for', {
+              t 'for (int ',
+              i(1, 'i'),
+              t ' = 0; ',
+              f(function(args)
+                return args[1][1]
+              end, { 1 }),
+              t ' < ',
+              i(2, 'n'),
+              t '; ',
+              f(function(args)
+                return args[1][1]
+              end, { 1 }),
+              t { '++) {', '    ' },
+              i(0),
+              t { '', '}' },
+            }),
           })
 
-          -- Keymaps for snippet navigation
+          -- ========================================
+          -- GOLANG SNIPPETS
+          -- ========================================
+          ls.add_snippets('go', {
+            s('main', {
+              t {
+                'package main',
+                '',
+                'import "fmt"',
+                '',
+                'func main() {',
+                '    fmt.Println("Hello, World!")',
+                '}',
+              },
+            }),
+            s('http', {
+              t {
+                'package main',
+                '',
+                'import (',
+                '    "fmt"',
+                '    "net/http"',
+                ')',
+                '',
+                'func handler(w http.ResponseWriter, r *http.Request) {',
+                '    fmt.Fprintf(w, "Hello, World!")',
+                '}',
+                '',
+                'func main() {',
+                '    http.HandleFunc("/", handler)',
+                '    http.ListenAndServe(":8080", nil)',
+                '}',
+              },
+            }),
+            s('iferr', {
+              t { 'if err != nil {', '    ' },
+              i(1, 'return err'),
+              t { '', '}' },
+            }),
+            s('func', {
+              t 'func ',
+              i(1, 'name'),
+              t '(',
+              i(2, 'params'),
+              t ') ',
+              i(3, 'returnType'),
+              t { ' {', '    ' },
+              i(0),
+              t { '', '}' },
+            }),
+          })
+
+          -- ========================================
+          -- TYPESCRIPT/TSX (React TypeScript) SNIPPETS
+          -- ========================================
+          ls.add_snippets('typescriptreact', {
+            s('rfc', {
+              t 'interface ',
+              i(1, 'Component'),
+              t { 'Props {', '  ' },
+              i(2, '// props'),
+              t { '', '}', '', 'export const ' },
+              f(function(args)
+                return args[1][1]
+              end, { 1 }),
+              t { ': React.FC<' },
+              f(function(args)
+                return args[1][1]
+              end, { 1 }),
+              t { 'Props> = (props) => {', '  return (', '    <div>' },
+              i(0),
+              t { '</div>', '  );', '};' },
+            }),
+            s('useState', {
+              t 'const [',
+              i(1, 'state'),
+              t ', set',
+              f(function(args)
+                local state = args[1][1]
+                return state:sub(1, 1):upper() .. state:sub(2)
+              end, { 1 }),
+              t '] = useState',
+              i(2, '<type>'),
+              t '(',
+              i(3, 'initialValue'),
+              t ');',
+            }),
+            s('useEffect', {
+              t { 'useEffect(() => {', '  ' },
+              i(1, '// effect'),
+              t { '', '}, [' },
+              i(2, 'dependencies'),
+              t ']);',
+            }),
+            s('ust', {
+              t 'const [',
+              i(1, 'state'),
+              t ', set',
+              f(function(args)
+                local state = args[1][1]
+                return state:sub(1, 1):upper() .. state:sub(2)
+              end, { 1 }),
+              t '] = useState(',
+              i(2, 'initialValue'),
+              t ');',
+            }),
+          })
+
+          -- ========================================
+          -- JAVASCRIPT/JSX (React JavaScript) SNIPPETS
+          -- ========================================
+          ls.add_snippets('javascriptreact', {
+            s('rfc', {
+              t 'export const ',
+              i(1, 'Component'),
+              t { ' = (props) => {', '  return (', '    <div>' },
+              i(0),
+              t { '</div>', '  );', '};' },
+            }),
+            s('useState', {
+              t 'const [',
+              i(1, 'state'),
+              t ', set',
+              f(function(args)
+                local state = args[1][1]
+                return state:sub(1, 1):upper() .. state:sub(2)
+              end, { 1 }),
+              t '] = useState(',
+              i(2, 'initialValue'),
+              t ');',
+            }),
+            s('useEffect', {
+              t { 'useEffect(() => {', '  ' },
+              i(1, '// effect'),
+              t { '', '}, [' },
+              i(2, 'dependencies'),
+              t ']);',
+            }),
+          })
+
+          -- ========================================
+          -- SOLIDJS (TypeScript) SNIPPETS
+          -- ========================================
+          ls.add_snippets('typescript', {
+            -- SolidJS component
+            s('sfc', {
+              t 'import { Component } from "solid-js";',
+              t { '', '', 'interface ' },
+              i(1, 'Component'),
+              t { 'Props {', '  ' },
+              i(2, '// props'),
+              t { '', '}', '', 'export const ' },
+              f(function(args)
+                return args[1][1]
+              end, { 1 }),
+              t { ': Component<' },
+              f(function(args)
+                return args[1][1]
+              end, { 1 }),
+              t { 'Props> = (props) => {', '  return (', '    <div>' },
+              i(0),
+              t { '</div>', '  );', '};' },
+            }),
+            -- createSignal
+            s('sig', {
+              t 'const [',
+              i(1, 'signal'),
+              t ', set',
+              f(function(args)
+                local state = args[1][1]
+                return state:sub(1, 1):upper() .. state:sub(2)
+              end, { 1 }),
+              t '] = createSignal',
+              i(2, '<type>'),
+              t '(',
+              i(3, 'initialValue'),
+              t ');',
+            }),
+            -- createEffect
+            s('eff', {
+              t { 'createEffect(() => {', '  ' },
+              i(0),
+              t { '', '});' },
+            }),
+            -- createMemo
+            s('memo', {
+              t 'const ',
+              i(1, 'memoized'),
+              t { ' = createMemo(() => {', '  return ' },
+              i(0),
+              t { '', '});' },
+            }),
+          })
+
+          -- ========================================
+          -- SOLIDJS (JavaScript) SNIPPETS
+          -- ========================================
+          ls.add_snippets('javascript', {
+            s('sfc', {
+              t 'export const ',
+              i(1, 'Component'),
+              t { ' = (props) => {', '  return (', '    <div>' },
+              i(0),
+              t { '</div>', '  );', '};' },
+            }),
+            s('sig', {
+              t 'const [',
+              i(1, 'signal'),
+              t ', set',
+              f(function(args)
+                local state = args[1][1]
+                return state:sub(1, 1):upper() .. state:sub(2)
+              end, { 1 }),
+              t '] = createSignal(',
+              i(2, 'initialValue'),
+              t ');',
+            }),
+          })
+
+          -- ========================================
+          -- PYTHON SNIPPETS
+          -- ========================================
+          ls.add_snippets('python', {
+            s('main', {
+              t {
+                'def main():',
+                '    ',
+              },
+              i(0, 'pass'),
+              t { '', '', '', 'if __name__ == "__main__":', '    main()' },
+            }),
+            s('class', {
+              t 'class ',
+              i(1, 'ClassName'),
+              t { ':', '    def __init__(self' },
+              i(2, ', args'),
+              t { '):', '        ' },
+              i(0, 'pass'),
+            }),
+          })
+
+          -- ========================================
+          -- KEYMAPS FOR SNIPPET NAVIGATION
+          -- ========================================
           vim.keymap.set({ 'i', 's' }, '<C-l>', function()
             if ls.expand_or_jumpable() then
               ls.expand_or_jump()
