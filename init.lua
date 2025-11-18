@@ -869,30 +869,75 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
     event = 'VimEnter',
     version = '1.*',
     dependencies = { -- Snippet Engine
+      -- {
+      --   'L3MON4D3/LuaSnip',
+      --   version = '2.*',
+      --   build = (function()
+      --     -- Build Step is needed for regex support in snippets.
+      --     -- This step is not supported in many windows environments.
+      --     -- Remove the below condition to re-enable on windows.
+      --     if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
+      --       return
+      --     end
+      --     return 'make install_jsregexp'
+      --   end)(),
+      --   dependencies = {
+      --     -- `friendly-snippets` contains a variety of premade snippets.
+      --     --    See the README about individual language/framework/plugin snippets:
+      --     --    https://github.com/rafamadriz/friendly-snippets
+      --     -- {
+      --     --   'rafamadriz/friendly-snippets',
+      --     --   config = function()
+      --     --     require('luasnip.loaders.from_vscode').lazy_load()
+      --     --   end,
+      --     -- },
+      --   },
+      --   opts = {},
+      -- },
       {
         'L3MON4D3/LuaSnip',
         version = '2.*',
         build = (function()
-          -- Build Step is needed for regex support in snippets.
-          -- This step is not supported in many windows environments.
-          -- Remove the below condition to re-enable on windows.
           if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
             return
           end
           return 'make install_jsregexp'
         end)(),
         dependencies = {
-          -- `friendly-snippets` contains a variety of premade snippets.
-          --    See the README about individual language/framework/plugin snippets:
-          --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          -- Keep friendly-snippets commented out as in your config
         },
-        opts = {},
+        config = function()
+          local ls = require 'luasnip'
+          local s = ls.snippet
+          local t = ls.text_node
+
+          -- Define custom snippets for C
+          ls.add_snippets('c', {
+            s('blp', {
+              t {
+                '#include <stdio.h>',
+                '',
+                'int main() {',
+                '    printf("Hello, World!\\n");',
+                '    return 0;',
+                '}',
+              },
+            }),
+          })
+
+          -- Keymaps for snippet navigation
+          vim.keymap.set({ 'i', 's' }, '<C-l>', function()
+            if ls.expand_or_jumpable() then
+              ls.expand_or_jump()
+            end
+          end, { silent = true })
+
+          vim.keymap.set({ 'i', 's' }, '<C-h>', function()
+            if ls.jumpable(-1) then
+              ls.jump(-1)
+            end
+          end, { silent = true })
+        end,
       },
       'folke/lazydev.nvim',
     },
