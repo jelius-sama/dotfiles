@@ -215,6 +215,71 @@ vim.opt.shiftwidth = 4 -- Indent size
 vim.opt.tabstop = 4 -- Display width of a tab
 vim.opt.softtabstop = 4 -- How many spaces to insert when pressing Tab
 
+-- NOTE: On Go files it uses gofmt to format but since gofmt uses tabs by default and is not configurable
+--        we customize the behavior by changing all tab characters into 4 spaces, this however may end up
+--        changing tabs into spaces where we explicitely wanted tab, example inside a string variable, etc.
+
+-- local go_group = vim.api.nvim_create_augroup('GoFmtSpaces', { clear = true })
+-- vim.api.nvim_create_autocmd('BufWritePre', {
+--   group = go_group,
+--   pattern = '*.go',
+--   callback = function()
+--     -- make sure indent settings match your preference
+--     vim.bo.tabstop = 4
+--     vim.bo.shiftwidth = 4
+--     vim.bo.softtabstop = 4
+--     vim.bo.expandtab = true
+--
+--     -- save cursor
+--     local cursor = vim.api.nvim_win_get_cursor(0)
+--
+--     -- format with gofmt (or goimports if you prefer)
+--     vim.cmd 'silent %!gofmt'
+--
+--     -- convert any tabs gofmt produced into spaces
+--     vim.cmd 'retab'
+--
+--     -- restore cursor
+--     vim.api.nvim_win_set_cursor(0, cursor)
+--   end,
+-- })
+local go_group = vim.api.nvim_create_augroup('GoFmtSpaces', { clear = true })
+vim.api.nvim_create_autocmd('BufWritePre', {
+  group = go_group,
+  pattern = '*.go',
+  callback = function()
+    -- enforce 4-space indentation
+    vim.bo.tabstop = 4
+    vim.bo.shiftwidth = 4
+    vim.bo.softtabstop = 4
+    vim.bo.expandtab = true
+
+    -- save cursor
+    local cursor = vim.api.nvim_win_get_cursor(0)
+
+    -- format
+    vim.cmd 'silent %!gofmt'
+
+    -- replace indentation tabs → 4 spaces, do NOT touch tabs inside strings
+    vim.cmd [[silent %s/^\t\+/\=repeat(' ', 4 * strlen(submatch(0)))/e]]
+
+    -- restore cursor
+    vim.api.nvim_win_set_cursor(0, cursor)
+  end,
+})
+
+-- NOTE: In C or C++ Code file the following makes `:w` to autoapply formatting using `clang-format`.
+local c_group = vim.api.nvim_create_augroup('ClangFormatFix', { clear = true })
+vim.api.nvim_create_autocmd('BufWritePre', {
+  group = c_group,
+  pattern = { '*.c', '*.h', '*.cpp', '*.hpp', '*.cc', '*.hh' },
+  callback = function()
+    local cursor = vim.api.nvim_win_get_cursor(0)
+    vim.cmd 'silent %!clang-format'
+    vim.api.nvim_win_set_cursor(0, cursor)
+  end,
+})
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -234,18 +299,6 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   }),
   callback = function()
     vim.highlight.on_yank()
-  end,
-})
-
--- NOTE: In C or C++ Code file the following makes `:w` to autoapply formatting using `clang-format`.
-local group = vim.api.nvim_create_augroup('ClangFormatFix', { clear = true })
-vim.api.nvim_create_autocmd('BufWritePre', {
-  group = group,
-  pattern = { '*.c', '*.h', '*.cpp', '*.hpp', '*.cc', '*.hh' },
-  callback = function()
-    local cursor = vim.api.nvim_win_get_cursor(0)
-    vim.cmd 'silent %!clang-format'
-    vim.api.nvim_win_set_cursor(0, cursor)
   end,
 })
 
@@ -852,6 +905,7 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
         local disable_filetypes = {
           c = true,
           cpp = true,
+          go = true,
         }
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
