@@ -280,6 +280,8 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   end,
 })
 
+local ENABLE_SWIFT_LSP = false
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -877,72 +879,74 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
         },
       }
 
-      -- Recursively search for directories containing module.modulemap
-      local uv = vim.loop
-      local function find_modulemap_dirs(root)
-        local dirs = {}
+      if ENABLE_SWIFT_LSP then
+        -- Recursively search for directories containing module.modulemap
+        local uv = vim.loop
+        local function find_modulemap_dirs(root)
+          local dirs = {}
 
-        local function scan(dir)
-          local fs = uv.fs_scandir(dir)
-          if not fs then
-            return
-          end
-
-          while true do
-            local name, type = uv.fs_scandir_next(fs)
-            if not name then
-              break
+          local function scan(dir)
+            local fs = uv.fs_scandir(dir)
+            if not fs then
+              return
             end
 
-            local full = dir .. '/' .. name
+            while true do
+              local name, type = uv.fs_scandir_next(fs)
+              if not name then
+                break
+              end
 
-            if type == 'file' and name == 'module.modulemap' then
-              table.insert(dirs, dir)
-            elseif type == 'directory' and name ~= '.git' and name ~= '.build' then
-              scan(full)
+              local full = dir .. '/' .. name
+
+              if type == 'file' and name == 'module.modulemap' then
+                table.insert(dirs, dir)
+              elseif type == 'directory' and name ~= '.git' and name ~= '.build' then
+                scan(full)
+              end
             end
           end
+
+          scan(root)
+          return dirs
         end
 
-        scan(root)
-        return dirs
-      end
+        -- NOTE: Manually initialize SourceKit LSP because Mason does not manage it
+        require('lspconfig').sourcekit.setup {
+          cmd = { 'sourcekit-lsp', '--build-path', '.build' },
+          filetypes = { 'swift' },
+          root_dir = function(fname)
+            return require('lspconfig.util').root_pattern('Package.swift', '.git')(fname)
+              or require('lspconfig.util').root_pattern('Package.swift', '.git')(vim.fn.getcwd())
+              or vim.fn.getcwd()
+          end,
+          capabilities = capabilities,
 
-      -- NOTE: Manually initialize SourceKit LSP because Mason does not manage it
-      require('lspconfig').sourcekit.setup {
-        cmd = { 'sourcekit-lsp', '--build-path', '.build' },
-        filetypes = { 'swift' },
-        root_dir = function(fname)
-          return require('lspconfig.util').root_pattern('Package.swift', '.git')(fname)
-            or require('lspconfig.util').root_pattern('Package.swift', '.git')(vim.fn.getcwd())
-            or vim.fn.getcwd()
-        end,
-        capabilities = capabilities,
-
-        -- ✨ NEW: inject modulemap include directories automatically
-        on_new_config = function(new_config, root_dir)
-          local modulemap_dirs = find_modulemap_dirs(root_dir)
-          for _, d in ipairs(modulemap_dirs) do
-            table.insert(new_config.cmd, '-Xcc')
-            table.insert(new_config.cmd, '-I' .. d)
-            table.insert(new_config.cmd, '-Xswiftc')
-            table.insert(new_config.cmd, '-I' .. d)
-          end
-        end,
-      }
-
-      -- Keeps SourceKit alive after :LspRestart or buffer reloads
-      vim.api.nvim_create_autocmd('FileType', {
-        pattern = 'swift',
-        callback = function()
-          for _, client in ipairs(vim.lsp.get_clients { bufnr = 0 }) do
-            if client.name == 'sourcekit' then
-              return -- already attached
+          -- ✨ NEW: inject modulemap include directories automatically
+          on_new_config = function(new_config, root_dir)
+            local modulemap_dirs = find_modulemap_dirs(root_dir)
+            for _, d in ipairs(modulemap_dirs) do
+              table.insert(new_config.cmd, '-Xcc')
+              table.insert(new_config.cmd, '-I' .. d)
+              table.insert(new_config.cmd, '-Xswiftc')
+              table.insert(new_config.cmd, '-I' .. d)
             end
-          end
-          require('lspconfig').sourcekit.launch()
-        end,
-      })
+          end,
+        }
+
+        -- Keeps SourceKit alive after :LspRestart or buffer reloads
+        vim.api.nvim_create_autocmd('FileType', {
+          pattern = 'swift',
+          callback = function()
+            for _, client in ipairs(vim.lsp.get_clients { bufnr = 0 }) do
+              if client.name == 'sourcekit' then
+                return -- already attached
+              end
+            end
+            require('lspconfig').sourcekit.launch()
+          end,
+        })
+      end
     end,
   },
   { -- Autoformat
