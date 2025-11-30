@@ -825,7 +825,6 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         ts_ls = {},
         --
-
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -877,6 +876,33 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
           end,
         },
       }
+
+      -- NOTE: Manually initialize SourceKit LSP because Mason does not manage it
+      require('lspconfig').sourcekit.setup {
+        cmd = { 'sourcekit-lsp', '--build-path', '.build' },
+        filetypes = { 'swift' },
+        root_dir = function(fname)
+          return require('lspconfig.util').root_pattern('Package.swift', '.git')(fname)
+            or require('lspconfig.util').root_pattern('Package.swift', '.git')(vim.fn.getcwd())
+            or vim.fn.getcwd()
+        end,
+        capabilities = capabilities,
+      }
+
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'swift',
+        callback = function()
+          -- if SourceKit already attached, do nothing
+          for _, client in ipairs(vim.lsp.get_clients { bufnr = 0 }) do
+            if client.name == 'sourcekit' then
+              return
+            end
+          end
+
+          -- (re)start SourceKit manually for this buffer
+          require('lspconfig').sourcekit.launch()
+        end,
+      })
     end,
   },
   { -- Autoformat
@@ -916,8 +942,16 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
           }
         end
       end,
+      formatters = {
+        swift_format = {
+          command = 'swift',
+          args = { 'format' }, -- reads from stdin, writes to stdout
+          stdin = true,
+        },
+      },
       formatters_by_ft = {
         lua = { 'stylua' },
+        swift = { 'swift_format' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
