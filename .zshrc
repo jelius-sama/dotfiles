@@ -110,6 +110,7 @@ eval "$(zoxide init --cmd cd zsh)"
 
 # Swift SDK
 export PATH="/usr/local/swift/usr/bin:$PATH"
+source "$HOME/.swift-static-sdk.zsh"
 
 # Flutter SDK
 export PATH="/usr/local/flutter/bin:$PATH"
