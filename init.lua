@@ -877,6 +877,37 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
         },
       }
 
+      -- Recursively search for directories containing module.modulemap
+      local uv = vim.loop
+      local function find_modulemap_dirs(root)
+        local dirs = {}
+
+        local function scan(dir)
+          local fs = uv.fs_scandir(dir)
+          if not fs then
+            return
+          end
+
+          while true do
+            local name, type = uv.fs_scandir_next(fs)
+            if not name then
+              break
+            end
+
+            local full = dir .. '/' .. name
+
+            if type == 'file' and name == 'module.modulemap' then
+              table.insert(dirs, dir)
+            elseif type == 'directory' and name ~= '.git' and name ~= '.build' then
+              scan(full)
+            end
+          end
+        end
+
+        scan(root)
+        return dirs
+      end
+
       -- NOTE: Manually initialize SourceKit LSP because Mason does not manage it
       require('lspconfig').sourcekit.setup {
         cmd = { 'sourcekit-lsp', '--build-path', '.build' },
@@ -887,19 +918,28 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
             or vim.fn.getcwd()
         end,
         capabilities = capabilities,
+
+        -- ✨ NEW: inject modulemap include directories automatically
+        on_new_config = function(new_config, root_dir)
+          local modulemap_dirs = find_modulemap_dirs(root_dir)
+          for _, d in ipairs(modulemap_dirs) do
+            table.insert(new_config.cmd, '-Xcc')
+            table.insert(new_config.cmd, '-I' .. d)
+            table.insert(new_config.cmd, '-Xswiftc')
+            table.insert(new_config.cmd, '-I' .. d)
+          end
+        end,
       }
 
+      -- Keeps SourceKit alive after :LspRestart or buffer reloads
       vim.api.nvim_create_autocmd('FileType', {
         pattern = 'swift',
         callback = function()
-          -- if SourceKit already attached, do nothing
           for _, client in ipairs(vim.lsp.get_clients { bufnr = 0 }) do
             if client.name == 'sourcekit' then
-              return
+              return -- already attached
             end
           end
-
-          -- (re)start SourceKit manually for this buffer
           require('lspconfig').sourcekit.launch()
         end,
       })
