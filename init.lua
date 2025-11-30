@@ -237,14 +237,17 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- NOTE: In C or C++ Code file the following makes `:w` to autoapply formatting using `clang-format`.
+local group = vim.api.nvim_create_augroup('ClangFormatFix', { clear = true })
 vim.api.nvim_create_autocmd('BufWritePre', {
+  group = group,
   pattern = { '*.c', '*.h', '*.cpp', '*.hpp', '*.cc', '*.hh' },
-  command = 'silent! %!clang-format',
+  callback = function()
+    local cursor = vim.api.nvim_win_get_cursor(0)
+    vim.cmd 'silent %!clang-format'
+    vim.api.nvim_win_set_cursor(0, cursor)
+  end,
 })
-
-vim.bo.tabstop = 4
-vim.bo.shiftwidth = 4
-vim.bo.expandtab = true
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
