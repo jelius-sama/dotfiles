@@ -274,13 +274,29 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   group = c_group,
   pattern = { '*.c', '*.h', '*.cpp', '*.hpp', '*.cc', '*.hh' },
   callback = function()
+    -- Check if the buffer is empty or has only whitespace
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+    -- Check if all lines are empty or only whitespace
+    local is_empty = true
+    for _, line in ipairs(lines) do
+      if line ~= '' then
+        is_empty = false
+        break
+      end
+    end
+
+    if is_empty then
+      return -- Skip formatting if the buffer is empty or only whitespace
+    end
+
     local cursor = vim.api.nvim_win_get_cursor(0)
     vim.cmd 'silent %!clang-format'
     vim.api.nvim_win_set_cursor(0, cursor)
   end,
 })
 
-local ENABLE_SWIFT_LSP = false
+local ENABLE_SWIFT_LSP = true
 local USE_DEFAULT_SWIFT_LSP = true
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
