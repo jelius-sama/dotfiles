@@ -248,6 +248,22 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   group = go_group,
   pattern = '*.go',
   callback = function()
+    -- Check if the buffer is empty or has only whitespace
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+    -- Check if all lines are empty or only whitespace
+    local is_empty = true
+    for _, line in ipairs(lines) do
+      if line ~= '' then
+        is_empty = false
+        break
+      end
+    end
+
+    if is_empty then
+      return -- Skip formatting if the buffer is empty or only whitespace
+    end
+
     -- enforce 4-space indentation
     vim.bo.tabstop = 4
     vim.bo.shiftwidth = 4
