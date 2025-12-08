@@ -218,31 +218,6 @@ vim.opt.softtabstop = 4 -- How many spaces to insert when pressing Tab
 -- NOTE: On Go files it uses gofmt to format but since gofmt uses tabs by default and is not configurable
 --        we customize the behavior by changing all tab characters into 4 spaces, this however may end up
 --        changing tabs into spaces where we explicitely wanted tab, example inside a string variable, etc.
-
--- local go_group = vim.api.nvim_create_augroup('GoFmtSpaces', { clear = true })
--- vim.api.nvim_create_autocmd('BufWritePre', {
---   group = go_group,
---   pattern = '*.go',
---   callback = function()
---     -- make sure indent settings match your preference
---     vim.bo.tabstop = 4
---     vim.bo.shiftwidth = 4
---     vim.bo.softtabstop = 4
---     vim.bo.expandtab = true
---
---     -- save cursor
---     local cursor = vim.api.nvim_win_get_cursor(0)
---
---     -- format with gofmt (or goimports if you prefer)
---     vim.cmd 'silent %!gofmt'
---
---     -- convert any tabs gofmt produced into spaces
---     vim.cmd 'retab'
---
---     -- restore cursor
---     vim.api.nvim_win_set_cursor(0, cursor)
---   end,
--- })
 local go_group = vim.api.nvim_create_augroup('GoFmtSpaces', { clear = true })
 vim.api.nvim_create_autocmd('BufWritePre', {
   group = go_group,
@@ -264,23 +239,28 @@ vim.api.nvim_create_autocmd('BufWritePre', {
       return -- Skip formatting if the buffer is empty or only whitespace
     end
 
-    -- enforce 4-space indentation
-    vim.bo.tabstop = 4
-    vim.bo.shiftwidth = 4
-    vim.bo.softtabstop = 4
-    vim.bo.expandtab = true
-
-    -- save cursor
     local cursor = vim.api.nvim_win_get_cursor(0)
 
-    -- format
+    -- Use undojoin to merge with the write operation
+    pcall(function()
+      vim.cmd 'undojoin'
+    end)
     vim.cmd 'silent %!gofmt'
 
     -- replace indentation tabs → 4 spaces, do NOT touch tabs inside strings
     vim.cmd [[silent %s/^\t\+/\=repeat(' ', 4 * strlen(submatch(0)))/e]]
 
-    -- restore cursor
-    vim.api.nvim_win_set_cursor(0, cursor)
+    -- Get the new line count after formatting
+    local new_line_count = vim.api.nvim_buf_line_count(0)
+
+    -- Adjust cursor position if it's beyond the new line count
+    local new_row = math.min(cursor[1], new_line_count)
+
+    -- Get the length of the target line
+    local target_line = vim.api.nvim_buf_get_lines(0, new_row - 1, new_row, false)[1] or ''
+    local new_col = math.min(cursor[2], #target_line)
+
+    pcall(vim.api.nvim_win_set_cursor, 0, { new_row, new_col })
   end,
 })
 
@@ -307,7 +287,12 @@ vim.api.nvim_create_autocmd('BufWritePre', {
     end
 
     local cursor = vim.api.nvim_win_get_cursor(0)
+    -- local line_count_before = vim.api.nvim_buf_line_count(0)
 
+    -- Use undojoin to merge with the write operation
+    pcall(function()
+      vim.cmd 'undojoin'
+    end)
     vim.cmd 'silent %!clang-format'
 
     -- Get the new line count after formatting
@@ -320,8 +305,6 @@ vim.api.nvim_create_autocmd('BufWritePre', {
     local target_line = vim.api.nvim_buf_get_lines(0, new_row - 1, new_row, false)[1] or ''
     local new_col = math.min(cursor[2], #target_line)
 
-    -- Restore cursor without polluting undo history
-    vim.cmd 'noautocmd normal! m`' -- Set a mark for jump list
     pcall(vim.api.nvim_win_set_cursor, 0, { new_row, new_col })
   end,
 })
