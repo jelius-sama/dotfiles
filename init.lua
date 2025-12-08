@@ -307,8 +307,22 @@ vim.api.nvim_create_autocmd('BufWritePre', {
     end
 
     local cursor = vim.api.nvim_win_get_cursor(0)
+
     vim.cmd 'silent %!clang-format'
-    vim.api.nvim_win_set_cursor(0, cursor)
+
+    -- Get the new line count after formatting
+    local new_line_count = vim.api.nvim_buf_line_count(0)
+
+    -- Adjust cursor position if it's beyond the new line count
+    local new_row = math.min(cursor[1], new_line_count)
+
+    -- Get the length of the target line
+    local target_line = vim.api.nvim_buf_get_lines(0, new_row - 1, new_row, false)[1] or ''
+    local new_col = math.min(cursor[2], #target_line)
+
+    -- Restore cursor without polluting undo history
+    vim.cmd 'noautocmd normal! m`' -- Set a mark for jump list
+    pcall(vim.api.nvim_win_set_cursor, 0, { new_row, new_col })
   end,
 })
 
