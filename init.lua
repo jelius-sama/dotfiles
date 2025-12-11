@@ -209,6 +209,12 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', {
   desc = 'Move focus to the upper window',
 })
 
+-- INFO: Disables the issue of <Tab> key shifting the cursor around
+vim.snippet.expand = nil
+vim.snippet.jump = nil
+vim.keymap.set('i', '<Tab>', '<Tab>', { noremap = true })
+vim.keymap.set('s', '<Tab>', '<Tab>', { noremap = true })
+
 -- NOTE: The following four line of code makes pressing tab key enter four spaces instead of a tab.
 vim.opt.expandtab = true -- Use spaces instead of tabs
 vim.opt.shiftwidth = 4 -- Indent size
