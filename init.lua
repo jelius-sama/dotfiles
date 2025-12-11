@@ -251,7 +251,26 @@ vim.api.nvim_create_autocmd('BufWritePre', {
     pcall(function()
       vim.cmd 'undojoin'
     end)
-    vim.cmd 'silent %!gofmt'
+
+    -- INFO: The following code makes it so that if `gofmt` emits an error
+    -- the code file is not replaced by that error message
+    -- vim.cmd 'silent %!gofmt'
+
+    -- Run gofmt safely without replacing buffer on error
+    local fmt = vim
+      .system({ 'gofmt' }, {
+        stdin = table.concat(lines, '\n'),
+      })
+      :wait()
+
+    -- if gofmt fails, save the file as-is without formatting
+    if fmt.code ~= 0 then
+      return
+    end
+
+    -- replace buffer with formatted output
+    local formatted = vim.split(fmt.stdout, '\n', { plain = true })
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, formatted)
 
     -- replace indentation tabs → 4 spaces, do NOT touch tabs inside strings
     vim.cmd [[silent %s/^\t\+/\=repeat(' ', 4 * strlen(submatch(0)))/e]]
@@ -269,7 +288,6 @@ vim.api.nvim_create_autocmd('BufWritePre', {
     pcall(vim.api.nvim_win_set_cursor, 0, { new_row, new_col })
   end,
 })
-
 -- NOTE: In C or C++ Code file the following makes `:w` to autoapply formatting using `clang-format`.
 local c_group = vim.api.nvim_create_augroup('ClangFormatFix', { clear = true })
 vim.api.nvim_create_autocmd('BufWritePre', {
