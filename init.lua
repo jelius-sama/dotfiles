@@ -333,7 +333,7 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   end,
 })
 
-local ENABLE_SWIFT_LSP = true
+local ENABLE_SWIFT_LSP = false
 local USE_DEFAULT_SWIFT_LSP = true
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
