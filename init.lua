@@ -936,15 +936,19 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
       if ENABLE_SWIFT_LSP then
         if USE_DEFAULT_SWIFT_LSP then
           -- NOTE: Manually initialize SourceKit LSP because Mason does not manage it
+          -- require('lspconfig').sourcekit.setup {
+          --   cmd = { 'sourcekit-lsp', '--build-path', '.build' },
+          --   filetypes = { 'swift' },
+          --   root_dir = function(fname)
+          --     return require('lspconfig.util').root_pattern('Package.swift', '.git')(fname)
+          --       or require('lspconfig.util').root_pattern('Package.swift', '.git')(vim.fn.getcwd())
+          --       or vim.fn.getcwd()
+          --   end,
+          --   capabilities = capabilities,
+          -- }
           require('lspconfig').sourcekit.setup {
-            cmd = { 'sourcekit-lsp', '--build-path', '.build' },
-            filetypes = { 'swift' },
-            root_dir = function(fname)
-              return require('lspconfig.util').root_pattern('Package.swift', '.git')(fname)
-                or require('lspconfig.util').root_pattern('Package.swift', '.git')(vim.fn.getcwd())
-                or vim.fn.getcwd()
-            end,
-            capabilities = capabilities,
+            cmd = { '/usr/local/swift/usr/bin/sourcekit-lsp' },
+            root_dir = require('lspconfig.util').root_pattern 'Package.swift',
           }
 
           vim.api.nvim_create_autocmd('FileType', {
