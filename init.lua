@@ -333,7 +333,7 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   end,
 })
 
-local ENABLE_SWIFT_LSP = false
+local ENABLE_SWIFT_LSP = true
 local USE_DEFAULT_SWIFT_LSP = true
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
@@ -652,6 +652,7 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
+    commit = '5dae152e',
     dependencies = { -- Automatically install LSPs and related tools to stdpath for Neovim
       -- Mason must be loaded before its dependents so we need to set it up here.
       -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
@@ -869,7 +870,8 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        clangd = {},
+        -- INFO: sourcekit-lsp seems to be doing the job so we don't really need clangd otherwise we'd get two diagnostics.
+        -- clangd = {},
         gopls = {},
         -- pyright = {},
         rust_analyzer = {},
@@ -936,19 +938,14 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
       if ENABLE_SWIFT_LSP then
         if USE_DEFAULT_SWIFT_LSP then
           -- NOTE: Manually initialize SourceKit LSP because Mason does not manage it
-          -- require('lspconfig').sourcekit.setup {
-          --   cmd = { 'sourcekit-lsp', '--build-path', '.build' },
-          --   filetypes = { 'swift' },
-          --   root_dir = function(fname)
-          --     return require('lspconfig.util').root_pattern('Package.swift', '.git')(fname)
-          --       or require('lspconfig.util').root_pattern('Package.swift', '.git')(vim.fn.getcwd())
-          --       or vim.fn.getcwd()
-          --   end,
-          --   capabilities = capabilities,
-          -- }
           require('lspconfig').sourcekit.setup {
-            cmd = { '/usr/local/swift/usr/bin/sourcekit-lsp' },
-            root_dir = require('lspconfig.util').root_pattern 'Package.swift',
+            cmd = { 'sourcekit-lsp' },
+            root_dir = function(fname)
+              return require('lspconfig.util').root_pattern('Package.swift', '.git')(fname)
+                or require('lspconfig.util').root_pattern('Package.swift', '.git')(vim.fn.getcwd())
+                or vim.fn.getcwd()
+            end,
+            capabilities = capabilities,
           }
 
           vim.api.nvim_create_autocmd('FileType', {
@@ -1075,8 +1072,8 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
       end,
       formatters = {
         swift_format = {
-          command = 'swift',
-          args = { 'format' }, -- reads from stdin, writes to stdout
+          command = 'swift-format',
+          args = { 'format' },
           stdin = true,
         },
       },
@@ -1588,13 +1585,14 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    commit = '684eeac91ed8e297685a97ef70031d19ac1de25a',
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
       ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
-      auto_install = true,
+      auto_install = false,
       highlight = {
         enable = true,
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
