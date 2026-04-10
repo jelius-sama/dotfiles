@@ -873,6 +873,9 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
         -- INFO: sourcekit-lsp seems to be doing the job so we don't really need clangd otherwise we'd get two diagnostics.
         -- clangd = {},
         gopls = {},
+        templ = {
+          filetypes = { 'templ' },
+        },
         -- pyright = {},
         rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
