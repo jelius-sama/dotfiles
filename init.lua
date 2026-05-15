@@ -85,6 +85,11 @@ P.S. You can delete this when you're done too. It's your config now! :)
 --]]
 -- Set <space> as the leader key
 -- See `:help mapleader`
+
+-- vim.g.netrw_sort_by = 'time' -- Default sorting style to time
+-- vim.g.netrw_sort_direction = 'reverse' -- Default direction to reverse
+-- vim.g.netrw_liststyle = 3
+
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
@@ -116,6 +121,21 @@ vim.opt.showmode = false
 vim.schedule(function()
   vim.opt.clipboard = 'unnamedplus'
 end)
+
+-- FIX: Added `alias nvim='WAYLAND_DISPLAY= nvim'` to ~/.zshrc file and it got fixed.
+-- vim.schedule(function()
+--   vim.g.clipboard = {
+--     name = 'xsel',
+--     copy = {
+--       ['+'] = { 'xsel', '--nodetach', '-i', '-b' },
+--       ['*'] = { 'xsel', '--nodetach', '-i', '-p' },
+--     },
+--     paste = {
+--       ['+'] = { 'xsel', '-o', '-b' },
+--       ['*'] = { 'xsel', '-o', '-p' },
+--     },
+--   }
+-- end)
 
 -- Enable break indent
 vim.opt.breakindent = true
@@ -382,6 +402,7 @@ vim.opt.rtp:prepend(lazypath)
 --
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
+  { import = 'custom.plugins' },
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -400,6 +421,15 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
   --        end,
   --    }
   --
+  -- {
+  --   'mrcjkb/rustaceanvim',
+  --   -- To avoid being surprised by breaking changes,
+  --   -- I recommend you set a version range
+  --   version = '^8',
+  --   -- This plugin implements proper lazy-loading (see :h lua-plugin-lazy).
+  --   -- No need for lazy.nvim to lazy-load it.
+  --   lazy = false,
+  -- },
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`.
   --
