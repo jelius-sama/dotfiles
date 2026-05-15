@@ -1,0 +1,172 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Pastel-Room Rice — purple & cyan accents to match your messy-room wallpaper
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ─── System ──────────────────────────────────────────────────────────────
+distro="Fedora"
+kernel="Asahi Linux"
+
+# ─── IMAGE ───────────────────────────────────────────────────────────────
+gap=4                 # space between image and info panel
+col_offset="auto"     # auto-align to right
+
+# music_player="playerctl"
+# song_format="%artist% - %album% - %title%"
+# song_shorthand="on"
+
+# ─── GLOBAL STYLE ────────────────────────────────────────────────────────
+bold="on"
+underline_enabled="off"       # we’re using custom box lines
+underline_char="─"            # no effect, but set for completeness
+# ANSI palette indices: 5=magenta, 6=cyan, 7=white
+# order: title, '@', underline, subtitle, colon, info
+colors=(5 7 5 6 5 7)
+
+# ─── INFO LAYOUT ─────────────────────────────────────────────────────────
+print_info() {
+    # ┏━━━━━━━ Neofetch ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    info title
+    info underline
+
+    # ┏━━ System ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    prin "" "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    prin "OS"       "$distro"
+    prin "Kernel"   "$kernel"
+    info "Uptime"   uptime
+
+    # ┗━━ Shell & Term ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    prin "" "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    prin "User"   "kazuma-kun"
+    # info "User"    users
+    info "Shell"    shell
+    info "Terminal" term
+
+    # ┏━━ Music & Users ━━━━━━━━━━━━━━━━━━━━━━━━━━
+    found=false
+    for instance in $(playerctl -l | grep firefox); do
+        if playerctl -p "$instance" status &>/dev/null; then
+            url=$(playerctl -p "$instance" metadata xesam:url 2>/dev/null)
+            if [[ $url == https://music.apple.com* ]]; then
+                artist=$(playerctl -p "$instance" metadata xesam:artist 2>/dev/null)
+                album=$(playerctl -p "$instance" metadata xesam:album 2>/dev/null)
+                title=$(playerctl -p "$instance" metadata xesam:title 2>/dev/null)
+                found=true
+
+                artist=${artist:-"no artist"}
+                album=${album:-"no album"}
+                title=${title:-"not playing"}
+
+                prin "" "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+                prin "Music" "Apple Music"
+                prin "Artist" "$artist"
+                prin "Album" "$album"
+                prin "Song" "$title"
+
+                prin "" "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                break
+            fi
+        fi
+    done
+
+    # Now supports chromium based browsers too
+    # if [[ $found == false ]]; then
+    #     for instance in $(playerctl -l | grep chromium); do
+    #         if playerctl -p "$instance" status &>/dev/null; then
+    #             url=$(playerctl -p "$instance" metadata xesam:url 2>/dev/null)
+    #             if [[ $url == https://music.apple.com* ]]; then
+    #                 artist=$(playerctl -p "$instance" metadata xesam:artist 2>/dev/null)
+    #                 album=$(playerctl -p "$instance" metadata xesam:album 2>/dev/null)
+    #                 title=$(playerctl -p "$instance" metadata xesam:title 2>/dev/null)
+    #                 found=true
+    #
+    #                 artist=${artist:-"no artist"}
+    #                 album=${album:-"no album"}
+    #                 title=${title:-"not playing"}
+    #
+    #                 prin "" "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    #
+    #                 prin "Music" "Apple Music"
+    #                 prin "Artist" "$artist"
+    #                 prin "Album" "$album"
+    #                 prin "Song" "$title"
+    #
+    #                 prin "" "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    #                 break
+    #             fi
+    #         fi
+    #     done
+    # fi
+    # NOTE: There's a catch with chromium based browser without a custom patch, it doesn't broadcast the URL through D-Bus
+    # The temporary fix is to see if there is an album art, if there is then we can assume that it is possibly Apple Music though we can never be certain
+        if [[ $found == false ]]; then
+        for instance in $(playerctl -l | grep chromium); do
+            if playerctl -p "$instance" status &>/dev/null; then
+                art=$(playerctl -p "$instance" metadata mpris:artUrl 2>/dev/null)
+                if [[ $art != "" ]]; then
+                    artist=$(playerctl -p "$instance" metadata xesam:artist 2>/dev/null)
+                    album=$(playerctl -p "$instance" metadata xesam:album 2>/dev/null)
+                    title=$(playerctl -p "$instance" metadata xesam:title 2>/dev/null)
+                    found=true
+
+                    artist=${artist:-"no artist"}
+                    album=${album:-"no album"}
+                    title=${title:-"not playing"}
+
+                    prin "" "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+                    prin "Music" "Apple Music"
+                    prin "Artist" "$artist"
+                    prin "Album" "$album"
+                    prin "Song" "$title"
+
+                    prin "" "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    break
+                fi
+            fi
+        done
+    fi
+
+    # fallback if nothing matched
+    if [[ $found == false ]]; then
+        prin "" "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        prin "Music" "Apple Music"
+        prin "Artist" "no artist"
+        prin "Album"  "no album"
+        prin "Song"   "not playing"
+
+        prin "" "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    fi
+}
+
+# ─── WHAT TO SHOW ─────────────────────────────────────────────────────────
+kernel_shorthand="on"
+distro_shorthand="off"
+os_arch="off"
+uptime_shorthand="on"
+
+memory_unit="mib"
+memory_percent="off"
+
+shell_path="off"
+shell_version="on"
+
+# ─── COLOR BLOCKS (bottom) ───────────────────────────────────────────────
+color_blocks="on"
+block_range=(5 6)    # only magenta & cyan
+block_width=2
+block_height=1
+
+# ─── CLEAN & MINIMAL ─────────────────────────────────────────────────────
+cpu_display="off"
+memory_display="off"
+battery_display="off"
+disk_display="off"
+
+title_fqdn="off"
+packages="off"
+de_version="off"
+disk_show=('/')
+disk_percent="off"
