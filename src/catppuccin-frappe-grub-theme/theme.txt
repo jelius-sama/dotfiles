@@ -6,7 +6,7 @@ title-text: ""
 desktop-image: "background.png"
 desktop-image-scale-method: "stretch"
 desktop-color: "#303446"
-terminal-font: "Unifont Regular 24"
+terminal-font: "JetBrains Mono Regular 24"
 terminal-left: "0"
 terminal-top: "0"
 terminal-width: "100%"
@@ -22,11 +22,11 @@ terminal-border: "0"
 
 # Show the boot menu
 + boot_menu {
-  left = 50%-500
-  top = 60%
-  width = 1000
+  left = 50%-610
+  top = 50%
+  width = 1220
   height = 30%
-  item_font = "Unifont Regular 24"
+  item_font = "JetBrains Mono Regular 24"
   item_color = "#C6D0F5"
   selected_item_color = "#C6D0F5"
   icon_width = 32
