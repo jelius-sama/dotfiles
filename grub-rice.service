@@ -1,0 +1,15 @@
+[Unit]
+Description=Randomise GRUB logo before next boot
+DefaultDependencies=no
+Before=shutdown.target reboot.target halt.target
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/kazuma/.config/grub/randomizer /home/kazuma/.config/grub/logo
+RemainAfterExit=no
+User=root
+Group=root
+
+[Install]
+WantedBy=shutdown.target reboot.target halt.target
