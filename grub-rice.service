@@ -12,4 +12,4 @@ User=root
 Group=root
 
 [Install]
-WantedBy=shutdown.target reboot.target halt.target
+WantedBy=multi-user.target

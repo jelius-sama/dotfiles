@@ -20,13 +20,13 @@ const (
 )
 
 func main() {
-    if len(os.Args) < 2 {
-        fmt.Fprintf(os.Stderr, "Usage: %s <images-dir>\n", os.Args[0])
-        fmt.Fprintf(os.Stderr, "  images-dir: directory containing prepared *%s files\n", imageSuffix)
-        os.Exit(1)
-    }
+    var imagesDir string
 
-    imagesDir := os.Args[1]
+    if len(os.Args) < 2 {
+        imagesDir = "/home/kazuma/.config/grub/logo"
+    } else {
+        imagesDir = os.Args[1]
+    }
 
     env, err := godotenv.Read(grubConfigPath)
     if err != nil {
