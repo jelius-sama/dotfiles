@@ -88,6 +88,7 @@
     //        all inherit the same style.
     // "format": "{capacity}% {icon}",
     "format": "{icon}",
+    "rotate": 270,
     "format-discharging": "{icon}",
     "format-charging": "{icon}",
     "format-plugged": "",
