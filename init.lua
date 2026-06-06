@@ -695,7 +695,15 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
       -- Useful status updates for LSP.
       {
         'j-hui/fidget.nvim',
-        opts = {},
+        opts = {
+          -- Options related to LSP notifications
+          notification = {
+            window = {
+              winblend = 0, -- 0 means fully transparent window backdrop
+              border = 'none', -- Strip out any visual box borders
+            },
+          },
+        },
       }, -- Allows extra capabilities provided by blink.cmp
       'saghen/blink.cmp',
     },
@@ -964,6 +972,15 @@ require('lazy').setup({ -- NOTE: Plugins can be added with a link (or for a gith
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
+        },
+      }
+
+      require('lspconfig').dartls.setup {
+        cmd = { 'dart', 'language-server', '--protocol=lsp' },
+        root_dir = require('lspconfig.util').root_pattern 'pubspec.yaml',
+        init_options = {
+          onlyAnalyzeProjectsWithOpenFiles = true,
+          suggestFromUnimportedLibraries = true,
         },
       }
 
