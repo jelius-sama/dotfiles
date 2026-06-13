@@ -83,12 +83,9 @@
     "on-click": "omarchy-launch-wifi"
   },
   "battery": {
-    // FIXME: The font size of {capacity}% comapared to other
-    //        elements on the waybar is too BIG even though they
-    //        all inherit the same style.
     // "format": "{capacity}% {icon}",
     "format": "{icon}",
-    "rotate": 270,
+    // "rotate": 270,
     "format-discharging": "{icon}",
     "format-charging": "{icon}",
     "format-plugged": "",

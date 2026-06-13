@@ -7,7 +7,7 @@
   border: none;
   border-radius: 0;
   min-height: 0;
-  font-family: 'JetBrains Mono';
+  font-family: 'JetBrains Mono', 'CaskaydiaMono Nerd Font', 'Font Awesome 6 Free Solid', 'Font Awesome 6 Free', 'omarchy';
   font-size: 12px;
 }
 
@@ -35,56 +35,37 @@
 #pulseaudio,
 #cpu,
 #battery,
+#custom-omarchy,
 #custom-update,
 #custom-expand-icon,
 #custom-screenrecording-indicator,
 #custom-idle-indicator,
 #custom-notification-silencing-indicator,
 #tray {
-  font-family: 'JetBrains Mono';
+  font-family: 'Cascadia Mono NF';
   font-size: 18px;
   min-width: 12px;
   margin: 0 6px;
+  margin-left: 8px;
 }
 
 #custom-omarchy {
-    background-image: url('file:///home/kazuma/.config/waybar/images/AsahiLinux.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    font-size: 18px;
-    min-width: 12px;
-    min-height: 12px;
-    margin: 0 6px;
+  background-image: url('file:///home/kazuma/.config/waybar/images/AsahiLinux.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  min-width: 12px;
+  min-height: 12px;
+  margin: 0 6px;
 }
 
-#bluetooth {
-  margin-right: 10px;
-}
-
-#network {
+#clock {
   margin-right: 8px;
-}
-
-#tray {
-  margin-right: 16px;
-}
-
-#custom-expand-icon {
-  margin-right: 12px;
-}
-
-#custom-omarchy {
-  font-size: 13px;
+  margin-left: 0px;
 }
 
 tooltip {
   padding: 2px;
-}
-
-
-#clock {
-  margin-left: 8.75px;
 }
 
 .hidden {
